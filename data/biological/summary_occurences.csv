@@ -1,0 +1,10 @@
+taxon,nb_sites,freq_sites,nb_country,freq_country,phylum,class,order,family,genus,group
+Halesus,394,59,12,75,Arthropoda,Insecta,Trichoptera,Limnephilidae,Halesus,Trichoptera
+Elodes,301,45,9,56,Arthropoda,Insecta,Coleoptera,Scirtidae,Elodes,Coleoptera
+Nectoporus,206,31,4,25,Arthropoda,Insecta,Coleoptera,Dytiscidae,Nectoporus,Coleoptera
+Cordulegaster,98,15,6,38,Arthropoda,Insecta,Odonata,Cordulegastridae,Cordulegaster,Odonata
+Drusus,76,11,4,25,Arthropoda,Insecta,Trichoptera,Limnephilidae,Drusus,Trichoptera
+Chaetocladius,68,10,3,19,Arthropoda,Insecta,Diptera,Chironomidae,Chaetocladius,Diptera
+Ameletus,47,7,3,19,Arthropoda,Insecta,Ephemeroptera,Ameletidae,Ameletus,Ephemeroptera
+Ecnomus,47,7,9,56,Arthropoda,Insecta,Trichoptera,Ecnomidae,Ecnomus,Trichoptera
+Chelicorophium,46,7,3,19,Arthropoda,Malacostraca,Amphipoda,Corophiidae,Chelicorophium,Crustaceans
