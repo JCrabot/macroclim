@@ -13,10 +13,10 @@ All scripts are commented but here is the general structure of the procedure:
 1.Running_All_Models:
 
 2.0_SDM_and_distribution_descriptors:
-  2.1_Biological_data_wrangling:
-  2.2_Environmental_data_wrangling:
-  2.3_SpeciesDistributionModels:
-  2.4_Extract_model_information:
+   2.1_Biological_data_wrangling:
+   2.2_Environmental_data_wrangling:
+   2.3_SpeciesDistributionModels:
+   2.4_Extract_model_information:
   
 3.Calculate_distribution_change:
 4.New_predictions_with_fragmentation:
