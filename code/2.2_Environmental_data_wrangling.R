@@ -30,7 +30,7 @@ if (discard != "no"){
 
 if (!exists("stats_table_present")) { # same table for all species
   
-  # Read the previously created file
+  # Read the file of environmental variables
   stats_table_zon <- fread(paste0(wd, "environment/environment.csv"))
   
   # We will keep only the mean of each variable of the stats_table,

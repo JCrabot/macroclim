@@ -33,7 +33,7 @@ if (discard != "no"){ # discard polluted sites
 
 #### Combining the training data and compute SDMs ####
 
-# data to train the model on
+# Preparing data to train the model on
 data_model_RA <- data.table::rbindlist(list(presence, absence), fill = TRUE)
 
 presence$occurrence <- 1
@@ -52,15 +52,9 @@ if (nrow(presence)> 10){
   mtry = 7
   
   rf_param <- rf_parameters[which(rf_parameters$taxon == taxa_selected),]
-  if (nrow(rf_param) == 1){
-    min.node.size = rf_param[1, "min.node.size"]
-    min.bucket = rf_param[1, "min.bucket"]
-    max.depth = rf_param[1,"max.depth"]
-  } else {
-    min.node.size = 1
-    min.bucket = 1
-    max.depth = Inf
-  }
+  min.node.size = rf_param[1, "min.node.size"]
+  min.bucket = rf_param[1, "min.bucket"]
+  max.depth = rf_param[1,"max.depth"]
   
   if (downsample) {   # with down-sampling
     pres_num <- as.numeric(table(data_train_RA$occurrence)["1"])
@@ -139,7 +133,7 @@ if (nrow(presence)> 10){
     }
   }
   
-  # Inspect the model
+  ## Inspect the model
   # model_RA
   
   #### Predictions ----

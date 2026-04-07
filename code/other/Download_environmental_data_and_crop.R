@@ -1,7 +1,13 @@
-#################################################################
-##       Download environmental data and crop them             ##
-#################################################################
-#### Working directory and packages ####
+##       Download environmental data and crop them  ##
+
+# Parts of this script are directly adapted from the following case study:
+# https://glowabio.github.io/hydrographr/articles/case_study_cuba.html
+# Developed by Marlene Schürz, Afroditi Grigoropoulou, Jaime Garcia Marquez,
+# Yusdiel Torres Cambas, Christoph Schürz, Mathieu Floury, Thomas Tomiczek,
+# Vanessa Bremerich, Merret Buurman, Giuseppe Amatulli, Sami Domisch.
+
+##--------------------------------------------------
+##         Working directory and packages ####
 wd <- "C:/Users/julie/Documents/macroclim/data/"
 setwd(wd) 
 
@@ -13,7 +19,7 @@ pacman::p_load(dplyr, ncdf4, fst, #data wrangling
 bbox_terra <- c(-10.5,32.702, 34.856, 71.31)
 
 ##--------------------------------------------------
-##          Download environmental files        --
+##          Download environmental files        ----
 ##--------------------------------------------------
 #### Download CHELSA variables: present and future ####
 # Create download directory
@@ -137,9 +143,8 @@ dir.create(paste0(wd, "/hydroatlas/"))
 # manual downloads at https://www.hydrosheds.org/hydroatlas#download
 
 ##--------------------------------------------------
-##   Crop the environmental data to study extent  --
+##   Crop the environmental data to study extent  ----
 ##--------------------------------------------------
-
 #### Define output directory for merged files #### 
 layer_dir <- paste0(wd, "final_layers")
 # Create the directory if it has not already been created before
@@ -283,3 +288,95 @@ for(ifile in files_ll) {
 }
 
 gc()
+##------------------------------------------------------------------
+## Associate all environmental variables with HydroRIVERS network ----
+##------------------------------------------------------------------
+if (!file.exists(paste0(wd,"environment/environment.csv"))){
+  pacman::p_load(tidyterra)
+  
+  layer_dir <- paste0(wd, "final_layers")
+  files_var <- list.files(layer_dir, pattern = ".tif", full.names = TRUE)
+  rivers <-terra::vect(paste0(wd,"hydroatlas/RiverATLAS_v10_shp/RiverATLAS_v10_eu.shp"),
+                       extent=bbox_terra) #already cropped to the right extent
+  
+  functions_summ <-
+    function(x, na.rm = T){
+      c(
+        mean = mean(x, na.rm = na.rm),
+        min = min(x, na.rm = na.rm),
+        max = max(x, na.rm = na.rm),
+        sd = sd(x, na.rm = na.rm)
+      )
+    }
+  
+  #first set of variables = RiverATLAS variables = 1 value per river reach
+  
+  var_names=c("HYRIV_ID",
+              "ari_ix_cav", "ari_ix_uav",  # aridity index
+              "cmi_ix_cyr", "cmi_ix_uyr",  # climate moisture index (annual average)
+              "snw_pc_cyr", "snw_pc_uyr",  # snow cover extent (annual average)
+              "gla_pc_cse", "gla_pc_use",  # glacier extent
+              # "prm_pc_cse", "prm_pc_use", # permafrost extent
+              "pop_ct_csu", "pop_ct_usu",  # population count
+              "ppd_pk_cav", "ppd_pk_uav",  # population density
+              # "urb_pc_cse", "urb_pc_use",  # urban density, taken in LUCAS LUC
+              "hft_ix_c09", "hft_ix_u09",  # human footprint in 2009
+              # "nli_ix_uav","nli_ix_cav",  # night lights
+              # "rdd_mk_cav","rdd_mk_uav",  # road density
+              "ria_ha_csu", "ria_ha_usu",  # river area
+              "riv_tc_csu","riv_tc_usu",   # river volume
+              "gwt_cm_cav",                # groundwater table depth
+              "cly_pc_cav", "slt_pc_cav", "snd_pc_cav","cly_pc_uav", "slt_pc_uav", "snd_pc_uav", # FOR SOIL COMPOSITION
+              "ele_mt_cav", "ele_mt_cmn", "ele_mt_cmx", "ele_mt_uav", #elevation
+              "slp_dg_cav", "slp_dg_uav",  # slope
+              "pet_mm_cyr", "pet_mm_uyr",  # potential evapotranspiration
+              "aet_mm_cyr", "aet_mm_uyr",  # actual evapotranspiration
+              "ero_kh_cav", "ero_kh_uav"   # erosion
+  )
+  
+  zonal_stats_hydroshed <- rivers %>%
+    select(any_of(var_names))
+  
+  dirs_dryver <- paste0(wd, "dryver")
+  dryver_hyriv  <- read.csv(paste0(dirs_dryver,"/dryver_pres_fut.csv"), header=T, sep=",", stringsAsFactors = FALSE)
+  zonal_stats_hydroshed <- zonal_stats_hydroshed %>%
+    as.data.frame() %>%
+    left_join(dryver_hyriv, by = "HYRIV_ID")
+  
+  dirs_chelsa <- paste0(wd, "chelsa_bioclim")
+  files_chelsa <- list.files(dirs_chelsa, pattern = ".tif", full.names = TRUE)
+  dirs_fs <- paste0(wd, "futurestreams")
+  files_fs <- list.files(dirs_fs, pattern = ".nc", full.names = TRUE)
+  
+  #second case: other variables = sometimes more than one value per river reach
+  for (var in files_var) {
+    # print(Sys.time())
+    print(var)
+    
+    # for chelsa, because there can be many pixels for one RiverATLAS segment
+    if (basename(var) %in% basename(files_chelsa)){
+      raster <- rast(var)
+      temp <- terra::extract(raster, rivers, fun=functions_summ)
+      colnames(temp)[2:5] <- paste0(rep(str_remove(basename(var), ".tif"),4),c("_mean","_min","_max","_sd"))
+      zonal_stats_hydroshed <- zonal_stats_hydroshed %>%
+        bind_cols(temp %>% as.data.frame() %>% select(contains(c("_mean","_min","_max","_sd"))))
+      
+    } else if (str_remove(basename(var), ".tif") %in% str_remove(basename(files_fs), ".nc") | 
+               startsWith(str_remove(basename(var), ".tif"),"LUCAS")){
+      # for futurestreams and lucasluc, because there is mostly one or two pixels for one RiverATLAS segment
+      raster <- rast(var)
+      temp <- terra::extract(raster, rivers, fun=mean, na.rm=TRUE)
+      zonal_stats_hydroshed <- zonal_stats_hydroshed %>%
+        bind_cols(temp %>% as.data.frame() %>% select(last_col()))
+      colnames(zonal_stats_hydroshed)[ncol(zonal_stats_hydroshed)] <- paste0(str_remove(basename(var), ".tif"),"_mean")
+    }
+    rm(list=c("temp","raster"))
+  }
+  
+  zonal_stats_hydroshed <- zonal_stats_hydroshed %>%  replace(is.na(.), -9999999)
+  
+  write.csv(zonal_stats_hydroshed,
+            paste0(wd,"environment/environment.csv"), row.names = FALSE)
+  
+  
+}

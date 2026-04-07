@@ -2,7 +2,7 @@
 # intersection of AMBER dams and Hydrosehd, obtained in QGis
 if (!exists("dams_intersected", envir = globalenv())) {
   dams_intersected  <- fread(paste0(wd,
-                                    "environment/amber-project-data/intersect_amber_dams_hydroshed_0.005.csv")) %>%
+                                    "environment/amber-project-data/intersect_amber_dams_hydroshed.csv")) %>%
     filter(!is.na(HYRIV_ID))
   dams_id <- dams_intersected$HYRIV_ID
 }

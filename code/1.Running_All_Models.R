@@ -1,21 +1,20 @@
 #### Working directory and packages ####
-# setwd("C:/Users/julie/Documents/macroclim/github_macroclim/")
-wd <- paste0(getwd(), "/data/")
-wd_script <- paste0(getwd(), "/code/")
-
-setwd(wd)
-
-pacman::p_load(data.table, dplyr, janitor, tidyverse, stringr, tibble, #data wrangling
+pacman::p_load(here, #working directory
+               data.table, dplyr, janitor, tidyverse, stringr, tibble, #data wrangling
                terra, tidyterra, # gis
                foreach, doParallel, # parallelize fragmentation calculation
                ranger #random forests
 )
 
+wd <- paste0(here(), "/data/")
+wd_script <- paste0(here(), "/code/")
+
+setwd(wd)
+
 #### Specify model parameters used in the random forest ####
-proba <- FALSE # TRUE to get a probability of occurrence in the randil forests (else = binary result presence/absence)
+proba <- FALSE # TRUE to get a probability of occurrence in the random forests (else = binary result presence/absence)
 export <- FALSE # if TRUE writes predictions to disk with to display maps later in GIS
 downsample <- TRUE # if TRUE, down-sampling carried out for the RF, if FALSE, all sites considered for the RF
-selec <- FALSE # if TRUE, considering only environmental variables > random in RF predictions, if FALSE uses all env variables
 
 #### Loading data ####
 
