@@ -27,7 +27,7 @@ and compared the model performance using different indicators but mostly the
 True Skill Statistic (TSS).
 
 sites.csv: Details on each sampling site as in Haase et al. 2023.
-Column site_id to resolution provide information on the country, associated 
+Columns "site_id" to "resolution" provide information on the country, associated 
 dataset, details on sampling method, main taxonomic resolution reached and spatial
 coordinates. Additional columns (from HYRIV_ID to HYBAS_L12) stem from the
 snapping of the sampling sites to the HydroRIVER network and are the 
