@@ -3,6 +3,7 @@ wd <- paste0(getwd(), "/data/")
 setwd(wd)
 pacman::p_load(dplyr, tidyterra, terra) # Data wrangling and map plots
 
+# Create folder for the output shapefiles of MARXAN if needed
 if (!dir.exists(paste0(wd, "output/marxan/gis/"))){
   dir.create(paste0(wd, "output/marxan/gis/"), recursive=T)
 }
@@ -27,7 +28,7 @@ if (! ("basins" %in% ls(envir = .GlobalEnv))) {
                  extent=bbox_terra)
 }
 
-#### Run Marxan ####
+#### Run MARXAN ####
 wd_marxan <- paste0(wd,"output/marxan/", file_name)
 setwd(wd_marxan)
 

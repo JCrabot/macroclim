@@ -88,7 +88,7 @@ if (exists("varimp_RA_random", envir = globalenv())) {
       
       # build object  with geographic coordinates of river segments
       if (!exists("geom_rivers", envir = globalenv())) {
-        river_segments <-terra::vect(paste0(wd,"environment/hydroatlas/RiverATLAS_v10_shp/RiverATLAS_v10_eu.shp"),
+        river_segments <-terra::vect(paste0(wd,"/environment/hydroatlas/HydroRIVERS_v10_eu_shp/HydroRIVERS_v10_eu.shp"),
                            extent=bbox_terra) #already cropped to the right extent
         geom_rivers <- terra::geom(river_segments)%>%
           as.data.frame()%>%

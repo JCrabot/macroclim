@@ -8,7 +8,7 @@ if (!exists("dams_intersected", envir = globalenv())) {
 }
 
 if (!exists("river_segments", envir = globalenv())) {
-  river_segments <-terra::vect(paste0(wd,"environment/hydroatlas/RiverATLAS_v10_shp/RiverATLAS_v10_eu.shp"),
+  river_segments <-terra::vect(paste0(wd,"/environment/hydroatlas/HydroRIVERS_v10_eu_shp/HydroRIVERS_v10_eu.shp"),
                              extent=bbox_terra)#already cropped to the right extent
 }
 
@@ -46,12 +46,12 @@ doParallel::registerDoParallel(cl = my.cluster)
 
 #### Fragmentation loop on all non-flying taxa - using distance length ####
 
-# Bound is a file that was used to look at the "boundary" as in Da Silva et al. 2024
-# From this "bound" variable, we get the river network distance in km between the outlets
-# of two river reaches along the HydroRIVERS network 
-length <- fread(paste0(wd,"/environment/bound.csv"), sep  = ",", dec=".", header= T) %>%
-  left_join(rivers_selec_df, by = c("id1" = "HYRIV_ID")) %>% 
-  mutate(dist_km = 1/(bound * bound)) %>%
+# "Network_length" provides the network distance between outlets of two rivers
+# along the HydroRIVERS network
+length <- fread(paste0(wd,"/environment/network_length.csv"), sep  = ",",
+                dec=".", header= T) %>%
+  left_join(rivers_selec_df, by = c("id1" = "HYRIV_ID")) %>%
+  select(id1, id2, dist_km)
   rename(HYRIV_ID_from = id1,
          HYRIV_ID_to = id2) %>%
   as.data.table()
@@ -75,42 +75,42 @@ for (taxa in list_taxa){
     
     if (length(id_new_reaches) > 0 & length(unique_main) >0){
       
-      id_no_colonization <- foreach (i = 1:length(unique_main),
-                                     .packages=c("dplyr", "data.table", "igraph"),
-                                     .combine = c) %dopar% { # for each new colonized reach
-                                       
-                                       in_main_riv = unique_main[i]
-                                       length_sub = length[MAIN_RIV == in_main_riv,]
-                                       
-                                       # selectioning in the distance matrices all pairs of sites where (HYRIV_ID_to) there was a colonization downstream (HYRIV_ID_from) a presence today
-                                       dist_mat_to <- length_sub[as.character(HYRIV_ID_to) %in% id_new_reaches,]
-                                       dist_mat_to <- dist_mat_to[as.character(HYRIV_ID_from) %in% reaches_present_today,]
-                                       colonization_effective <- dist_mat_to$HYRIV_ID_to # keeping colonizations if there was a presence upstream
-                                       
-                                       # removing colonization if there was no presence upstream nor downstream
-                                       dist_mat_from <- length_sub[as.character(HYRIV_ID_from) %in% id_new_reaches,]
-                                       dist_mat_from <- dist_mat_from[!as.character(HYRIV_ID_from) %in% colonization_effective,]
-                                       no_col_downstream<- dist_mat_from[!as.character(HYRIV_ID_to) %in% reaches_present_today,HYRIV_ID_from]
-                                       dist_mat_from <- dist_mat_from[as.character(HYRIV_ID_to) %in% reaches_present_today,] %>%
-                                         mutate(dam = case_when(HYRIV_ID_to %in% dams_id ~ "dam",
-                                                                .default = "no_dam")) %>%
-                                         arrange(dist_km, dam) %>%
-                                         group_by(HYRIV_ID_from)%>%
-                                         slice(1) %>%
-                                         ungroup
-                                       no_col_dam <- dist_mat_from[which(dist_mat_from$dam == "dam"),]$HYRIV_ID_from
-                                       
-                                       
-                                       if (length(id_new_reaches[id_new_reaches %in% rivers_coastal$HYRIV_ID]) > 0) {
-                                         id_no_colonization <- c(no_col_downstream, no_col_dam, id_new_reaches[id_new_reaches %in% rivers_coastal$HYRIV_ID])
-                                       } else {
-                                         id_no_colonization <- c(no_col_downstream, no_col_dam)
-                                       }
-                                       
-                                       return(id_no_colonization)
-                                       
-                                     }
-    
+      id_no_colonization <-
+        foreach (i = 1:length(unique_main),
+                 .packages=c("dplyr", "data.table", "igraph"),
+                 .combine = c) %dopar% { # for each new colonized reach
+                   
+                   in_main_riv = unique_main[i]
+                   length_sub = length[MAIN_RIV == in_main_riv,]
+                   
+                   # selectioning in the distance matrices all pairs of sites where (HYRIV_ID_to) there was a colonization downstream (HYRIV_ID_from) a presence today
+                   dist_mat_to <- length_sub[as.character(HYRIV_ID_to) %in% id_new_reaches,]
+                   dist_mat_to <- dist_mat_to[as.character(HYRIV_ID_from) %in% reaches_present_today,]
+                   colonization_effective <- dist_mat_to$HYRIV_ID_to # keeping colonizations if there was a presence upstream
+                   
+                   # removing colonization if there was no presence upstream nor downstream
+                   dist_mat_from <- length_sub[as.character(HYRIV_ID_from) %in% id_new_reaches,]
+                   dist_mat_from <- dist_mat_from[!as.character(HYRIV_ID_from) %in% colonization_effective,]
+                   no_col_downstream<- dist_mat_from[!as.character(HYRIV_ID_to) %in% reaches_present_today,HYRIV_ID_from]
+                   dist_mat_from <- dist_mat_from[as.character(HYRIV_ID_to) %in% reaches_present_today,] %>%
+                     mutate(dam = case_when(HYRIV_ID_to %in% dams_id ~ "dam",
+                                            .default = "no_dam")) %>%
+                     arrange(dist_km, dam) %>%
+                     group_by(HYRIV_ID_from)%>%
+                     slice(1) %>%
+                     ungroup
+                   no_col_dam <- dist_mat_from[which(dist_mat_from$dam == "dam"),]$HYRIV_ID_from
+                   
+                   
+                   if (length(id_new_reaches[id_new_reaches %in% rivers_coastal$HYRIV_ID]) > 0) {
+                     id_no_colonization <- c(no_col_downstream, no_col_dam, id_new_reaches[id_new_reaches %in% rivers_coastal$HYRIV_ID])
+                   } else {
+                     id_no_colonization <- c(no_col_downstream, no_col_dam)
+                   }
+                   
+                   return(id_no_colonization)
+                   
+                 }
       pred <- pred %>%
         mutate(future = case_when(HYRIV_ID %in% id_no_colonization ~ 0,
                                   .default = future),

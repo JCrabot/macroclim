@@ -28,7 +28,7 @@ summary_occurences <- read.csv(paste0(wd,"biological/summary_occurences.csv"),
                                header=T, sep=",", stringsAsFactors = FALSE)
 # List of datasets to be considered for the SDM for each genus
 list_datasets <- read.csv(paste0(wd,"biological/datasets_by_genus.csv"),
-                          header=T, sep=",",  stringsAsFactors = FALSE)
+                          header=T, sep=";",  stringsAsFactors = FALSE)
 # Parameters to use for each genus in the random forests, obtained after parameter tuning
 rf_parameters <- read.csv(paste0(wd,"biological/RF_parameters.csv"),
                           header=T, sep=",", stringsAsFactors = FALSE) %>%
@@ -39,7 +39,7 @@ taxo  <- read.csv(paste0(wd,"/biological/classification_macroclim.csv"),
 
 ### Site information
 sites  <- read.csv(paste0(wd,"biological/sites.csv"),
-                   header=T, sep=",", stringsAsFactors = FALSE)
+                   header=T, sep=";", stringsAsFactors = FALSE)
 
 ### HydroATLAS data
 # Equivalence of ID of river reaches from HydroRivers and ID of catchments of HydroBasins
