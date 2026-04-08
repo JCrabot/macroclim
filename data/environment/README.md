@@ -8,7 +8,7 @@ amber-project-data/ folder:
    AMBER to the HydroRIVERS network
    
 hydroatlas/ folder:
-   - The three subfolders countain files of HydroRIVERS, RiverATLAS and HydroBASINS,
+   - The three subfolders contain files of HydroRIVERS, RiverATLAS and HydroBASINS,
    downloaded from https://www.hydrosheds.org/hydroatlas
    - hyriv_hybas_equivalence.csv: gives the equivalence between ID of HydroRIVERS
    reaches and ID of catchments of HydroBASINS
