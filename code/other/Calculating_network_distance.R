@@ -1,4 +1,4 @@
-# Script from Mathis Messager
+# Script from Mathis Messager (@messamat), contact mathis.messager@mail.mcgill.ca for any question or comment
 
 #### Working environment ####
 pacman::p_load(here, # working directory
